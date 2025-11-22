@@ -26,10 +26,13 @@ def fetch_sec_filings(limit: int = 100) -> List[Dict]:
         description = item.get("formDescription", "").lower() 
         if "convertible preferred" in description:
             continue 
+        company_name = item.get("companyName", "")
+        company_name = " ".join([w.capitalize() for w in company_name.split()])
+        
         filings.append({
             "cik": item.get("cik"),
             "company_name": item.get("companyName"),
-            "ticker": item.get("ticker"),
+            "ticker": item.get("ticker"),       
             "filing_date": item.get("filedAt", "")[:10],
             "filing_type": item.get("formType"),
             "filing_url": item.get("linkToHtml"),
@@ -74,5 +77,5 @@ if __name__ == "__main__":
     test = fetch_sec_filings(limit=25)
     store_sec_filings_to_db(test)
     print(f"Inserted {len(test)} SEC filings.")
-#    for filing in test:
-#        print(filing)
+    for filing in test:
+        print(filing)
