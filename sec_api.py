@@ -58,7 +58,7 @@ def store_sec_filings_to_db(filings: List[Dict]) -> None:
         company_id = cur.fetchone()[0]
 
         cur.execute("""
-            INSERT INTO filings (company_id, filing_date, filing_type, filing_url, is_convertible)
+            INSERT OR IGNORE INTO filings (company_id, filing_date, filing_type, filing_url, is_convertible)
             VALUES (?, ?, ?, ?, ?)
         """, (
             company_id,
