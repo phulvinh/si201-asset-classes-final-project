@@ -11,6 +11,6 @@ FRED_SERIES = {
     "baa_yield": "BAA"       # Moody's BAA Corporate Bond Yield
 }
 
-
+            
 
 
