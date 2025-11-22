@@ -26,7 +26,7 @@ def create_tables():
             company_id INTEGER,
             filing_date TEXT,
             filing_type TEXT,
-            filing_url TEXT UNIQUE,
+            filing_url TEXT,
             is_convertible INTEGER, -- 0 or 1
             FOREIGN KEY (company_id) REFERENCES companies(id)
         )

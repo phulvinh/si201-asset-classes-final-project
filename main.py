@@ -5,7 +5,6 @@ from sec_api import fetch_sec_filings, store_sec_filings_to_db
 from stock_api import fetch_stock_prices, store_stock_prices_to_db
 from fred_api import fetch_treasury_10y, store_treasury_10y_to_db
 
-
 # ========== SEC ==========
 def load_sec_data(limit: int = 25):
     print(f"\n📥 Fetching up to {limit} SEC filings...")
@@ -59,7 +58,7 @@ def main():
     #load_stock_data()
 
     # C) Fetch interest-rate history (only 10Y)
-    #load_interest_rate_data(start_years_back=5, max_rows=100)
+    load_interest_rate_data(start_years_back=5, max_rows=100)
 
     print("🎉 main.py finished. Uncomment steps to run specific loads.")
 
