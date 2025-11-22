@@ -3,14 +3,14 @@ from typing import List, Dict
 from config import SEC_API_KEY, SEC_BASE_URL
 from db import get_connection
 
-def fetch_sec_filings(limit: int = 100) -> List[Dict]:
+def fetch_sec_filings(limit: int = 999) -> List[Dict]:
     if not SEC_API_KEY or SEC_API_KEY.startswith("YOUR_"):
         raise ValueError("SEC_API_KEY missing in config.py")
 
     url = f"{SEC_BASE_URL}?token={SEC_API_KEY}"
 
     payload = {
-        "query": 'formType:"8-K" AND ("convertible debt" OR "convertible notes" OR "convertible bond")',
+        "query": 'formType:"8-K" AND ("covertible" OR "convertible debt" OR "convertible notes" OR "convertible bond" OR "Covertible" OR "Convertible Debt" OR "Convertible Notes" OR "Convertible Bond")',
         "from": "0",
         "size": str(limit),
         "sort": [{ "filedAt": { "order": "desc" }}]
@@ -73,9 +73,3 @@ def store_sec_filings_to_db(filings: List[Dict]) -> None:
     conn.commit()
     conn.close()
 
-if __name__ == "__main__":
-    test = fetch_sec_filings(limit=25)
-    store_sec_filings_to_db(test)
-    print(f"Inserted {len(test)} SEC filings.")
-    for filing in test:
-        print(filing)
