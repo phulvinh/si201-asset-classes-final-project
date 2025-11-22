@@ -74,3 +74,5 @@ if __name__ == "__main__":
     test = fetch_sec_filings(limit=25)
     store_sec_filings_to_db(test)
     print(f"Inserted {len(test)} SEC filings.")
+#    for filing in test:
+#        print(filing)
