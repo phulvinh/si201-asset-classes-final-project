@@ -1,11 +1,15 @@
+# db.py
 import sqlite3
 from config import DB_NAME
 
 def get_connection():
-    conn = sqlite3.connect(DB_NAME)
-    return conn
+    return sqlite3.connect(DB_NAME)
+
 
 def create_tables():
+    """
+    Create all main tables if they don't exist.
+    """
     conn = get_connection()
     cur = conn.cursor()
 
@@ -14,7 +18,7 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS companies (
             id INTEGER PRIMARY KEY,
             cik TEXT UNIQUE,
-            name TEXT UNIQUE,
+            name TEXT,
             ticker TEXT UNIQUE
         )
     """)
@@ -26,8 +30,9 @@ def create_tables():
             company_id INTEGER,
             filing_date TEXT,
             filing_type TEXT,
-            filing_url TEXT UNIQUE,   -- <--- add UNIQUE constraint
+            filing_url TEXT UNIQUE,
             is_convertible INTEGER,
+            accession_number TEXT UNIQUE,   -- added here
             FOREIGN KEY (company_id) REFERENCES companies(id)
         )
     """)
@@ -56,9 +61,13 @@ def create_tables():
         )
     """)
 
+    # --- METADATA ---
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS metadata (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
-
-if __name__ == "__main__":
-    create_tables()
-    print("Tables created successfully.")
