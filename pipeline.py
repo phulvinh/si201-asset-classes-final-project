@@ -5,7 +5,7 @@ from fred_api import fetch_treasury_10y, store_treasury_10y_to_db
 from datetime import datetime, timedelta
 
 # ========== SEC ==========
-def load_sec_data(limit: int = 3):
+def load_sec_data(limit: int = 25):
     print(f"\nFetching up to {limit} SEC filings...")
     filings = fetch_sec_filings(limit=limit)
     store_sec_filings_to_db(filings)
@@ -101,7 +101,7 @@ def load_and_store_stock_returns():
     print(f"Inserted/updated {inserted} compact stock return rows.")
 
 # ========== FRED ==========
-def load_interest_rate_data(start_years_back: int = 10, max_rows: int = 50):
+def load_interest_rate_data(start_years_back: int = 5, max_rows: int = 25):
     print(f"\nFetching Treasury 10Y data...")
     rates = fetch_treasury_10y(start_years_back=start_years_back, max_rows=max_rows)
     store_treasury_10y_to_db(rates)

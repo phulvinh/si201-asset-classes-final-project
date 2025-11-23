@@ -21,7 +21,7 @@ def save_offset(offset: int) -> None:
     conn.commit()
     conn.close()
 
-def fetch_sec_filings(limit: int = 200) -> List[Dict]:
+def fetch_sec_filings(limit: int = 25) -> List[Dict]:
     if not SEC_API_KEY or SEC_API_KEY.startswith("YOUR_"):
         raise ValueError("SEC_API_KEY missing in config.py")
 
