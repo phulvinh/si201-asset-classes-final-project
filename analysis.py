@@ -346,9 +346,16 @@ def write_summary_to_file(bucket_counts, stock_results, ym_counts,
                           filename="analysis_summary.txt"):
     """
     Write a plain-text summary of key calculations to a file.
-    This is handy for the "write calculated data to a file" bonus and for your report.
+    Uses UTF-8 to avoid UnicodeEncodeError on Windows. Also normalizes
+    a few common punctuation symbols (en-dash, greater-equal) to ASCII.
     """
-    with open(filename, "w") as f:
+    def normalize_label(s: str) -> str:
+        if not isinstance(s, str):
+            return str(s)
+        return s.replace("–", "-").replace("—", "-").replace("≥", ">=").replace("≤", "<=")
+
+    # open with explicit utf-8 encoding so Unicode always works
+    with open(filename, "w", encoding="utf-8") as f:
         f.write("=== SI 201 Final Project – Analysis Summary ===\n\n")
 
         # Filings by rate environment
@@ -357,7 +364,8 @@ def write_summary_to_file(bucket_counts, stock_results, ym_counts,
             total_filings = sum(bucket_counts.values())
             for bucket, count in bucket_counts.items():
                 pct = (count / total_filings) * 100 if total_filings else 0
-                f.write(f"   - {bucket}: {count} filings ({pct:.1f}%)\n")
+                safe_bucket = normalize_label(bucket)
+                f.write(f"   - {safe_bucket}: {count} filings ({pct:.1f}%)\n")
             f.write(f"   Total filings considered: {total_filings}\n\n")
         else:
             f.write("   No data available.\n\n")

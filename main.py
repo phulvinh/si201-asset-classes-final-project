@@ -1,12 +1,11 @@
 # main.py
-
 from db import create_tables, get_connection
 from sec_api import fetch_sec_filings, store_sec_filings_to_db
 from stock_api import fetch_stock_prices, store_stock_prices_to_db
 from fred_api import fetch_treasury_10y, store_treasury_10y_to_db
 
 # ========== SEC ==========
-def load_sec_data(limit: int = 100):
+def load_sec_data(limit: int = 200):
     print(f"\n📥 Fetching up to {limit} SEC filings...")
     filings = fetch_sec_filings(limit=limit)
     store_sec_filings_to_db(filings)
