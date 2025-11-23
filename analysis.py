@@ -1,10 +1,10 @@
+from db import get_connection
 from datetime import datetime
 from collections import defaultdict
 from statistics import mean
 import sqlite3
 import matplotlib.pyplot as plt
 
-from db import get_connection
 
 
 # =========================
@@ -395,10 +395,10 @@ def write_summary_to_file(bucket_counts, stock_results, ym_counts,
     print(f"Summary written to {filename}")
 
 # =========================================
-# ============== MAIN =====================
+# =============== RUN =====================
 # =========================================
 
-def main():
+def run_analysis():
     # 1) Filings by rate bucket
     bucket_counts = calculate_filings_by_rate_bucket()
     print("Filings by rate bucket:", bucket_counts)
@@ -416,7 +416,3 @@ def main():
 
     # 4) Write summary to text file (bonus + report helper)
     write_summary_to_file(bucket_counts, stock_results, ym_counts)
-
-
-if __name__ == "__main__":
-    main()
