@@ -38,16 +38,14 @@ def create_tables():
 
     # --- STOCK PRICES ---
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS stock_prices (
+        CREATE TABLE IF NOT EXISTS stock_returns (
             id INTEGER PRIMARY KEY,
             company_id INTEGER,
-            date TEXT,
-            close REAL,
-            high REAL,
-            low REAL,
-            volume INTEGER,
+            filing_date TEXT,
+            return_day0_to_day5 REAL,
+            return_day5_to_day10 REAL,
             FOREIGN KEY (company_id) REFERENCES companies(id),
-            UNIQUE(company_id, date)
+            UNIQUE(company_id, filing_date)
         )
     """)
 
