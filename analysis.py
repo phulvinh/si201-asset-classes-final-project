@@ -118,7 +118,7 @@ def plot_filings_by_rate_bucket(bucket_counts):
     labels = list(bucket_counts.keys())
     values = [bucket_counts[b] for b in labels]
 
-    plt.figure(figsize=(8, 5), dpi=120)
+    plt.figure(figsize=(8, 5), dpi=140)
     plt.bar(labels, values)
     plt.title("Number of Convertible Filings by 10Y Treasury Yield Environment")
     plt.xlabel("10Y Yield Bucket at Filing Date")
