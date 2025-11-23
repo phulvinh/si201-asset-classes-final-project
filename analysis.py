@@ -1,9 +1,9 @@
 from db import get_connection
 from datetime import datetime
 from collections import defaultdict
-from statistics import mean
 import sqlite3
 import matplotlib.pyplot as plt
+from statistics import median
 
 
 # =========================
@@ -189,22 +189,23 @@ def plot_filings_over_time(ym_counts):
 
 def load_compact_stock_returns():
     """
-    Read compact returns from stock_returns table.
-    Returns a list of tuples (company_id, filing_date, ret0_5, ret5_10)
+    Read compact returns from stock_returns table, JOIN with companies
+    so we also retrieve ticker. This satisfies SQL JOIN requirement.
+    Returns: list of tuples (ticker, filing_date, ret0_5, ret5_10)
     ret0_5 and ret5_10 are floats or None.
     """
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT company_id, filing_date, return_day0_to_day5, return_day5_to_day10
-        FROM stock_returns
+        SELECT c.ticker, r.filing_date, r.return_day0_to_day5, r.return_day5_to_day10
+        FROM stock_returns r
+        JOIN companies c ON r.company_id = c.id
     """)
     rows = cur.fetchall()
     conn.close()
 
     results = []
-    for company_id, filing_date, r0_5, r5_10 in rows:
-        # Normalize None/malformed to Python None and floats
+    for ticker, filing_date, r0_5, r5_10 in rows:
         try:
             r0_5_val = float(r0_5) if r0_5 is not None else None
         except Exception:
@@ -214,24 +215,12 @@ def load_compact_stock_returns():
         except Exception:
             r5_10_val = None
 
-        results.append((company_id, filing_date, r0_5_val, r5_10_val))
+        results.append((ticker, filing_date, r0_5_val, r5_10_val))
 
     return results
 
 
 def calculate_avg_returns():
-    """
-    Compute the average return for the Day0->Day5 window and Day5->Day10 window
-    across all filings available in stock_returns.
-
-    Returns:
-        {
-          "avg_day0_5": float or None,
-          "avg_day5_10": float or None,
-          "count_day0_5": int,
-          "count_day5_10": int
-        }
-    """
     rows = load_compact_stock_returns()
     r0_5_list = []
     r5_10_list = []
@@ -242,8 +231,8 @@ def calculate_avg_returns():
         if r5_10 is not None:
             r5_10_list.append(r5_10)
 
-    avg0_5 = mean(r0_5_list) if r0_5_list else None
-    avg5_10 = mean(r5_10_list) if r5_10_list else None
+    avg0_5 = median(r0_5_list) if r0_5_list else None
+    avg5_10 = median(r5_10_list) if r5_10_list else None
 
     return {
         "avg_day0_5": avg0_5,
@@ -251,7 +240,6 @@ def calculate_avg_returns():
         "count_day0_5": len(r0_5_list),
         "count_day5_10": len(r5_10_list)
     }
-
 
 def plot_avg_returns_bar(avg_stats):
     """
@@ -267,8 +255,8 @@ def plot_avg_returns_bar(avg_stats):
 
     plt.figure(figsize=(6, 5), dpi=120)
     bars = plt.bar(labels, values)
-    plt.title("Average Returns Around Convertible Filing")
-    plt.ylabel("Average Return (%)")
+    plt.title("Median Returns Around Convertible Filing")
+    plt.ylabel("Median Return (%)")
 
     # Annotate bars with values or 'N/A'
     for i, b in enumerate(bars):

@@ -5,7 +5,7 @@ from fred_api import fetch_treasury_10y, store_treasury_10y_to_db
 from datetime import datetime, timedelta
 
 # ========== SEC ==========
-def load_sec_data(limit: int = 200):
+def load_sec_data(limit: int = 3):
     print(f"\nFetching up to {limit} SEC filings...")
     filings = fetch_sec_filings(limit=limit)
     store_sec_filings_to_db(filings)
@@ -45,11 +45,8 @@ def load_and_store_stock_returns():
             continue
 
         # Helper: find the close price on-or-after target_date_str
-        def find_close_on_or_after(target_dt_str):
-            for p in prices:
-                if p["date"] >= target_dt_str:
-                    return p["close"]
-            return None
+        # SORT FIRST!
+        prices = sorted(prices, key=lambda x: x["date"])
 
         # target date strings
         day0 = filing_date
@@ -61,25 +58,32 @@ def load_and_store_stock_returns():
         day5 = (fd + timedelta(days=5)).isoformat()
         day10 = (fd + timedelta(days=10)).isoformat()
 
-        p0 = find_close_on_or_after(day0)
-        p5 = find_close_on_or_after(day5)
-        p10 = find_close_on_or_after(day10)
+        # NEW: find close by index, not by exact calendar date
+        def find_closest_after(target):
+            for p in prices:
+                if p["date"] >= target:
+                    return p["close"]
+            return None
 
-        # Need both p0 & p5 to compute first window; need p5 & p10 for second window.
+        day0 = filing_date
+        fd = datetime.fromisoformat(filing_date).date()
+        day5 = (fd + timedelta(days=5)).isoformat()
+        day10 = (fd + timedelta(days=10)).isoformat()
+
+        p0  = find_closest_after(day0)
+        p5  = find_closest_after(day5)
+        p10 = find_closest_after(day10)
+
+        # Require at least Day0→Day5
         if (p0 is None) or (p5 is None):
             continue
-        # compute returns (percent)
-        try:
-            ret_0_5 = (p5 - p0) / p0 * 100.0
-        except Exception:
-            continue
 
-        ret_5_10 = None
+        ret0_5 = (p5 - p0) / p0 * 100
+
+        ret5_10 = None
         if p10 is not None and p5 != 0:
-            try:
-                ret_5_10 = (p10 - p5) / p5 * 100.0
-            except Exception:
-                ret_5_10 = None
+            ret5_10 = (p10 - p5) / p5 * 100
+
 
         # Insert or replace to keep the table idempotent
         cur.execute("""
@@ -88,13 +92,14 @@ def load_and_store_stock_returns():
             ON CONFLICT(company_id, filing_date) DO UPDATE SET
                 return_day0_to_day5 = excluded.return_day0_to_day5,
                 return_day5_to_day10 = excluded.return_day5_to_day10
-        """, (company_id, filing_date, ret_0_5, ret_5_10))
+        """, (company_id, filing_date, ret0_5, ret5_10))
 
         inserted += 1
 
     conn.commit()
     conn.close()
     print(f"Inserted/updated {inserted} compact stock return rows.")
+
 # ========== FRED ==========
 def load_interest_rate_data(start_years_back: int = 10, max_rows: int = 50):
     print(f"\nFetching Treasury 10Y data...")
