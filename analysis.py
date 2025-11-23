@@ -286,7 +286,6 @@ def plot_return_vs_rate(stock_results):
     plt.savefig("fig2_return_vs_rate_scatter.png", bbox_inches="tight")
     plt.show()
 
-
 # =========================================
 # === ANALYSIS 3: FILINGS OVER TIME =======
 # =========================================
