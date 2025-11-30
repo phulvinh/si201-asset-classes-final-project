@@ -27,52 +27,84 @@ def fetch_sec_filings(limit: int = 25) -> List[Dict]:
 
     # Read where we last left off
     offset = get_offset()
-
+    
     url = f"{SEC_BASE_URL}?token={SEC_API_KEY}"
+    
+    # Track unique CIKs and their most recent filing
+    unique_ciks = {}
+    page_size = 25
+    total_fetched = 0
+    
+    # Keep fetching until we have enough unique CIKs
+    while len(unique_ciks) < limit:
+        payload = {
+            "query": (
+                'formType:"8-K" AND ('
+                '"convertible debt" OR '
+                '"convertible note" OR '
+                '"convertible notes" OR '
+                '"convertible bond" OR '
+                '"convertible bonds"'
+                ")"
+            ),
+            "from": str(offset + total_fetched),
+            "size": str(page_size),
+            "sort": [{"filedAt": {"order": "desc"}}]
+        }
 
-    payload = {
-        "query": (
-            'formType:"8-K" AND ('
-            '"convertible debt" OR '
-            '"convertible note" OR '
-            '"convertible notes" OR '
-            '"convertible bond" OR '
-            '"convertible bonds"'
-            ")"
-        ),
-        "from": str(offset),
-        "size": str(limit),
-        "sort": [{"filedAt": {"order": "desc"}}]
-    }
-
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    data = response.json()
-
-    filings: List[Dict] = []
-
-    for item in data.get("filings", []):
-        description = item.get("formDescription", "").lower()
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        data = response.json()
         
-        if "convertible preferred" in description:
-            continue
+        filings_in_page = data.get("filings", [])
+        
+        # If no more filings available, break
+        if not filings_in_page:
+            print(f"No more filings available. Got {len(unique_ciks)} unique companies.")
+            break
+        
+        for item in filings_in_page:
+            description = item.get("formDescription", "").lower()
+            
+            if "convertible preferred" in description:
+                continue
 
-        raw_name = item.get("companyName", "") or ""
-        clean_name = " ".join(w.capitalize() for w in raw_name.split())
+            cik = item.get("cik")
+            
+            # Skip if we already have this CIK (we want the most recent filing, which comes first)
+            if cik in unique_ciks:
+                continue
+            
+            raw_name = item.get("companyName", "") or ""
+            clean_name = " ".join(w.capitalize() for w in raw_name.split())
 
-        filings.append({
-            "cik": item.get("cik"),
-            "company_name": clean_name,
-            "ticker": item.get("ticker"),
-            "filing_date": item.get("filedAt", "")[:10],
-            "filing_type": item.get("formType"),
-            "filing_url": item.get("linkToHtml"),
-            "is_convertible": 1
-        })
-
+            unique_ciks[cik] = {
+                "cik": cik,
+                "company_name": clean_name,
+                "ticker": item.get("ticker"),
+                "filing_date": item.get("filedAt", "")[:10],
+                "filing_type": item.get("formType"),
+                "filing_url": item.get("linkToHtml"),
+                "is_convertible": 1
+            }
+            
+            # Stop if we've reached our limit
+            if len(unique_ciks) >= limit:
+                break
+        
+        total_fetched += len(filings_in_page)
+        
+        # If we got fewer results than page_size, we've reached the end
+        if len(filings_in_page) < page_size:
+            print(f"Reached end of available filings. Got {len(unique_ciks)} unique companies.")
+            break
+    
     # Save next offset
-    save_offset(offset + limit)
-
+    save_offset(offset + total_fetched)
+    
+    # Convert dict to list
+    filings = list(unique_ciks.values())
+    
     return filings
 
 
