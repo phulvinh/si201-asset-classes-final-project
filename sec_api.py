@@ -25,18 +25,29 @@ def fetch_sec_filings(limit: int = 25) -> List[Dict]:
     if not SEC_API_KEY or SEC_API_KEY.startswith("YOUR_"):
         raise ValueError("SEC_API_KEY missing in config.py")
 
+    # Get CIKs already in database
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT cik FROM companies")
+    existing_ciks = set(row[0] for row in cur.fetchall())
+    conn.close()
+    
+    print(f"Found {len(existing_ciks)} companies already in database.")
+
     # Read where we last left off
     offset = get_offset()
     
     url = f"{SEC_BASE_URL}?token={SEC_API_KEY}"
     
-    # Track unique CIKs and their most recent filing
+    # Track unique NEW CIKs and their most recent filing
     unique_ciks = {}
     page_size = 25
     total_fetched = 0
+    max_pages = 100  # Safety limit to avoid infinite loops
+    pages_fetched = 0
     
-    # Keep fetching until we have enough unique CIKs
-    while len(unique_ciks) < limit:
+    # Keep fetching until we have enough unique NEW CIKs
+    while len(unique_ciks) < limit and pages_fetched < max_pages:
         payload = {
             "query": (
                 'formType:"8-K" AND ('
@@ -60,7 +71,7 @@ def fetch_sec_filings(limit: int = 25) -> List[Dict]:
         
         # If no more filings available, break
         if not filings_in_page:
-            print(f"No more filings available. Got {len(unique_ciks)} unique companies.")
+            print(f"No more filings available. Got {len(unique_ciks)} new unique companies.")
             break
         
         for item in filings_in_page:
@@ -71,8 +82,8 @@ def fetch_sec_filings(limit: int = 25) -> List[Dict]:
 
             cik = item.get("cik")
             
-            # Skip if we already have this CIK (we want the most recent filing, which comes first)
-            if cik in unique_ciks:
+            # Skip if we already have this CIK in the database OR in current batch
+            if cik in existing_ciks or cik in unique_ciks:
                 continue
             
             raw_name = item.get("companyName", "") or ""
@@ -93,10 +104,11 @@ def fetch_sec_filings(limit: int = 25) -> List[Dict]:
                 break
         
         total_fetched += len(filings_in_page)
+        pages_fetched += 1
         
         # If we got fewer results than page_size, we've reached the end
         if len(filings_in_page) < page_size:
-            print(f"Reached end of available filings. Got {len(unique_ciks)} unique companies.")
+            print(f"Reached end of available filings. Got {len(unique_ciks)} new unique companies.")
             break
     
     # Save next offset
@@ -104,6 +116,8 @@ def fetch_sec_filings(limit: int = 25) -> List[Dict]:
     
     # Convert dict to list
     filings = list(unique_ciks.values())
+    
+    print(f"Returning {len(filings)} new companies.")
     
     return filings
 
