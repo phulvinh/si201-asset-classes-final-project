@@ -48,7 +48,11 @@ def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dic
                 normalized.append({"date": d, "close": float(close)})
     
         except (TypeError, ValueError):
-            continue
+            if len(normalized) == 0:
+                normalized.append({
+                    "date": date_from,
+                    "close": 0.0
+                })
 
     # Sort by date ascending
     normalized.sort(key=lambda r: r["date"])
