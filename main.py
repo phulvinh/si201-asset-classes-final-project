@@ -1,6 +1,6 @@
-# Your names: Robert Silaghi, Phu Le
-# Your student ids: 87125192, 10566445
-# Your emails: silaghi@umich.edu, phule@umich.edu
+# Your names: Robert Silaghi, Phu Le, Sophia Danak
+# Your student ids: 87125192, 10566445, 15382496
+# Your emails: silaghi@umich.edu, phule@umich.edu, Sgdanak@umich.edu
 # Who or what you worked with on this homework (including generative AI like ChatGPT): ChatGPT
 # If you worked with generative AI also add a statement for how you used it.  
 # We used ChatGPT for debugging all of our files other than config.py. We also used it to create our database structure in db.py. We also used it to make sure our variables are unique. 
