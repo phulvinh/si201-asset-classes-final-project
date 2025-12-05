@@ -7,7 +7,6 @@
 # We also used it to understand packages like datetime and delta. We also used it for some SQL commands like insert or ignore. We also used it for help for limiting our API call. 
 # We also used it for methods like .isoformat(). We also used it to give us print statements to use in debugging. Lastly, we used it for date related methods like .strftime().
 
-
 from db import create_tables
 from db import create_tables
 from pipeline import load_sec_data, load_and_store_stock_returns, load_interest_rate_data
