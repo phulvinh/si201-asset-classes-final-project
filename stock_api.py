@@ -5,14 +5,7 @@ from config import STOCKDATA_API_KEY, STOCKDATA_BASE_URL
 from db import get_connection
 
 def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dict]:
-    if not ticker or not filing_date_str:
-        return []
-
-    try:
-        start_dt = datetime.fromisoformat(filing_date_str)
-    
-    except Exception:
-        return []
+    start_dt = datetime.fromisoformat(filing_date_str)
 
     # Request a slightly larger range to handle weekends / missing days
     date_from = start_dt.strftime("%Y-%m-%d")
@@ -27,12 +20,6 @@ def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dic
     }
 
     resp = requests.get(url, params=params)
-    
-    try:
-        resp.raise_for_status()
-    
-    except Exception:
-        return []
 
     data = resp.json()
     raw = data.get("data", []) if isinstance(data, dict) else []
@@ -50,13 +37,11 @@ def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dic
         except (TypeError, ValueError):
             continue
 
-    # Sort by date ascending
     if len(normalized) == 0:
-                normalized.append({
-                    "date": date_from,
-                    "close": 0.0
-                })
+        normalized.append({"date": date_from, "close": 0.0})
     normalized.sort(key=lambda r: r["date"])
+    
+    # Sort by date ascending
     return normalized
 
 def store_stock_prices_to_db(company_id: int, prices: List[Dict]) -> None:
