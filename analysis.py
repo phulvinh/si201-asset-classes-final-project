@@ -202,10 +202,10 @@ def calculate_avg_returns():
 
     for _, _, r0_5, r5_10 in rows:
     
-        if r0_5 is not None:
+        if r0_5 is not None and r0_5 != 0.0:
             r0_5_list.append(r0_5)
     
-        if r5_10 is not None:
+        if r5_10 is not None and r5_10 != 0.0:
             r5_10_list.append(r5_10)
 
     avg0_5 = median(r0_5_list) if r0_5_list else None
