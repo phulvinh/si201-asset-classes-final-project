@@ -5,7 +5,7 @@ from fred_api import fetch_treasury_10y, store_treasury_10y_to_db
 from datetime import datetime, timedelta
 
 # SEC
-def load_sec_data(limit: int = 100):
+def load_sec_data(limit: int = 25):
     print(f"\nFetching up to {limit} SEC filings...")
     filings = fetch_sec_filings(limit=limit)
     store_sec_filings_to_db(filings)
