@@ -3,7 +3,7 @@ SI 201 Final Project from Phu Le, Robert Silaghi, and Sophia Danak
 
 Your names: Robert Silaghi, Phu Le, Sophia Danak
 Your student ids: 87125192, 10566445, 15382496
-Your emails: silaghi@umich.edu, phule@umich.edu
+Your emails: silaghi@umich.edu, phule@umich.edu, sgdanak@umich.edu 
 Who or what you worked with on this homework (including generative AI like ChatGPT): ChatGPT
 If you worked with generative AI also add a statement for how you used it.  
 
