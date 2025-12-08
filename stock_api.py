@@ -55,12 +55,13 @@ def store_stock_prices_to_db(company_id: int, prices: List[Dict]) -> None:
             VALUES (?, ?, ?, ?, ?, ?)
         """, (
             company_id,
-            p["date"],
-            p["close"],
-            p["high"],
-            p["low"],
-            p["volume"]
+            p.get("date"),
+            p.get("close", 0.0),
+            p.get("high", 0.0),
+            p.get("low", 0.0),
+            p.get("volume", 0.0)
         ))
+
 
     conn.commit()
     conn.close()
