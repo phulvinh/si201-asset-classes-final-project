@@ -104,7 +104,7 @@ def plot_filings_by_rate_bucket(bucket_counts):
     values = [bucket_counts[b] for b in labels]
 
     plt.figure(figsize=(10, 5), dpi=140)
-    plt.bar(labels, values)
+    plt.bar(labels, values,color=["#1f77b4","#ff7f0e", "#2ca02c"])
     
     plt.title("Number of Convertible Filings by 10Y Treasury Yield Environment")
     plt.xlabel("10Y Yield Bucket at Filing Date")
@@ -146,7 +146,7 @@ def plot_filings_over_time(ym_counts):
     values = [row[1] for row in ym_counts]
 
     plt.figure(figsize=(10, 5), dpi=140)
-    plt.plot(labels, values, marker="o")
+    plt.plot(labels, values, marker="o", color="#d62728")
     
     plt.title("Convertible Filings Over Time (by Month)")
     plt.xlabel("Year-Month")
@@ -202,11 +202,12 @@ def calculate_avg_returns():
 
     for _, _, r0_5, r5_10 in rows:
     
-        if r0_5 is not None and r0_5 != 0.0:
+        if r0_5 not in (None, 0.0):
             r0_5_list.append(r0_5)
-    
-        if r5_10 is not None and r5_10 != 0.0:
+
+        if r5_10 not in (None, 0.0):
             r5_10_list.append(r5_10)
+
 
     avg0_5 = median(r0_5_list) if r0_5_list else None
     avg5_10 = median(r5_10_list) if r5_10_list else None
@@ -226,7 +227,7 @@ def plot_avg_returns_bar(avg_stats):
     values = [avg0 if avg0 is not None else 0.0, avg5 if avg5 is not None else 0.0]
 
     plt.figure(figsize=(10, 5), dpi=140)
-    bars = plt.bar(labels, values)
+    bars = plt.bar(labels, values, color=["#9467bd","#8c564b"])
     plt.title("Median Returns Around Convertible Filing")
     plt.ylabel("Median Return (%)")
 

@@ -16,6 +16,7 @@ def load_and_store_stock_returns():
     conn = get_connection()
     cur = conn.cursor()
     
+    # Get all companies with tickers and their first filing date
     cur.execute("""
         SELECT c.id, c.ticker, MIN(f.filing_date) AS filing_date
         FROM companies c
@@ -25,63 +26,62 @@ def load_and_store_stock_returns():
     """)
     
     rows = cur.fetchall()
-
     inserted = 0
     
     for company_id, ticker, filing_date in rows:
-        
         if not filing_date:
             continue
 
+        # Fetch stock prices
         prices = fetch_stock_prices_for_11days(ticker, filing_date)
-        
         if not prices:
+            # Private / missing stock should be inserted with 0.0
+            cur.execute("""
+                INSERT INTO stock_returns (company_id, filing_date, return_day0_to_day5, return_day5_to_day10)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(company_id, filing_date) DO UPDATE SET
+                    return_day0_to_day5 = excluded.return_day0_to_day5,
+                    return_day5_to_day10 = excluded.return_day5_to_day10
+            """, (company_id, filing_date, 0.0, 0.0))
+            inserted += 1
             continue
 
-        # SORT 
+        # Sort by date ascending
         prices = sorted(prices, key=lambda x: x["date"])
-
-        # target date strings
-        day0 = filing_date
         
-        # day5 and day10 as calendar offsets
+        # Convert filing date to datetime
         try:
             fd = datetime.fromisoformat(filing_date).date()
         except Exception:
             continue
         
+        day0 = filing_date
         day5 = (fd + timedelta(days=5)).isoformat()
         day10 = (fd + timedelta(days=10)).isoformat()
-
-        # find close by index, not by exact calendar date
+        
+        # Find closest trading close price after a given date
         def find_closest_after(target):
             for p in prices:
                 if p["date"] >= target:
-                    return p["close"]
+                    return p.get("close")
             return None
 
-        day0 = filing_date
-        fd = datetime.fromisoformat(filing_date).date()
-        day5 = (fd + timedelta(days=5)).isoformat()
-        day10 = (fd + timedelta(days=10)).isoformat()
-
-        p0  = find_closest_after(day0)
-        p5  = find_closest_after(day5)
+        p0 = find_closest_after(day0)
+        p5 = find_closest_after(day5)
         p10 = find_closest_after(day10)
 
-        # Require at least Day0 to Day5
-        if (p0 is None) or (p5 is None):
-            continue
+        # Compute returns
+        if p0 is None or p5 is None:
+            # Private or missing stock should be inserted 0.0
+            ret0_5 = 0.0
+            ret5_10 = 0.0
+        else:
+            ret0_5 = (p5 - p0) / p0 * 100
+            ret5_10 = None
+            if p10 is not None and p5 != 0:
+                ret5_10 = (p10 - p5) / p5 * 100
 
-        ret0_5 = (p5 - p0) / p0 * 100
-
-        ret5_10 = None
-        
-        if p10 is not None and p5 != 0:
-            ret5_10 = (p10 - p5) / p5 * 100
-
-
-        # Insert or replace to keep the table idempotent
+        # Idempotent insert
         cur.execute("""
             INSERT INTO stock_returns (company_id, filing_date, return_day0_to_day5, return_day5_to_day10)
             VALUES (?, ?, ?, ?)
@@ -89,12 +89,15 @@ def load_and_store_stock_returns():
                 return_day0_to_day5 = excluded.return_day0_to_day5,
                 return_day5_to_day10 = excluded.return_day5_to_day10
         """, (company_id, filing_date, ret0_5, ret5_10))
-
+        
         inserted += 1
 
     conn.commit()
     conn.close()
     print(f"Inserted/updated {inserted} compact stock return rows.")
+
+
+
 
 # FRED
 def load_interest_rate_data(start_years_back: int = 5, max_rows: int = 25):

@@ -23,7 +23,7 @@ def main():
     load_and_store_stock_returns()
 
     # C) Fetch interest-rate history (only 10Y)
-    load_interest_rate_data(start_years_back=5, max_rows=99999)
+    load_interest_rate_data(start_years_back=5, max_rows=25)
 
     # D) Run analysis
     run_analysis()

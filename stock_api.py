@@ -5,16 +5,9 @@ from config import STOCKDATA_API_KEY, STOCKDATA_BASE_URL
 from db import get_connection
 
 def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dict]:
-    if not ticker or not filing_date_str:
-        return []
+    start_dt = datetime.fromisoformat(filing_date_str)
 
-    try:
-        start_dt = datetime.fromisoformat(filing_date_str)
-    
-    except Exception:
-        return []
-
-    # Request a slightly larger range to handle weekends / missing days
+    # Request a slightly larger range to handle weekends or missing days
     date_from = start_dt.strftime("%Y-%m-%d")
     date_to = (start_dt + timedelta(days=12)).strftime("%Y-%m-%d")
 
@@ -27,12 +20,6 @@ def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dic
     }
 
     resp = requests.get(url, params=params)
-    
-    try:
-        resp.raise_for_status()
-    
-    except Exception:
-        return []
 
     data = resp.json()
     raw = data.get("data", []) if isinstance(data, dict) else []
@@ -48,14 +35,13 @@ def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dic
                 normalized.append({"date": d, "close": float(close)})
     
         except (TypeError, ValueError):
-            if len(normalized) == 0:
-                normalized.append({
-                    "date": date_from,
-                    "close": 0.0
-                })
+            continue
 
-    # Sort by date ascending
+    if len(normalized) == 0:
+        normalized.append({"date": date_from, "close": 0.0})
     normalized.sort(key=lambda r: r["date"])
+    
+    # Sort by date ascending
     return normalized
 
 def store_stock_prices_to_db(company_id: int, prices: List[Dict]) -> None:
@@ -69,12 +55,13 @@ def store_stock_prices_to_db(company_id: int, prices: List[Dict]) -> None:
             VALUES (?, ?, ?, ?, ?, ?)
         """, (
             company_id,
-            p["date"],
-            p["close"],
-            p["high"],
-            p["low"],
-            p["volume"]
+            p.get("date"),
+            p.get("close", 0.0),
+            p.get("high", 0.0),
+            p.get("low", 0.0),
+            p.get("volume", 0.0)
         ))
+
 
     conn.commit()
     conn.close()
