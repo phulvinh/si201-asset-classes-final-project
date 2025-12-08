@@ -17,13 +17,13 @@ def main():
     create_tables()
 
     # A) Fetch SEC convertible bond filings
-    load_sec_data(limit=25)
+    load_sec_data(limit=100)
 
     # B) Fetch stock prices for companies already in DB
     load_and_store_stock_returns()
 
     # C) Fetch interest-rate history (only 10Y)
-    load_interest_rate_data(start_years_back=5, max_rows=25)
+    load_interest_rate_data(start_years_back=5, max_rows=9999)
 
     # D) Run analysis
     run_analysis()

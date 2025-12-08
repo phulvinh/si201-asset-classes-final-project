@@ -147,12 +147,11 @@ def store_sec_filings_to_db(filings: List[Dict]) -> None:
         # Insert filing (ignore if accession_number already exists)
         cur.execute("""
             INSERT OR IGNORE INTO filings 
-            (company_id, filing_date, filing_type, filing_url, is_convertible)
-            VALUES (?, ?, ?, ?, ?)
+            (company_id, filing_date, filing_url, is_convertible)
+            VALUES (?, ?, ?, ?)
         """, (
             company_id,
             f["filing_date"],
-            f["filing_type"],
             f["filing_url"],
             f["is_convertible"]
         ))
