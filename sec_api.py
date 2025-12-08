@@ -94,7 +94,6 @@ def fetch_sec_filings(limit: int = 25) -> List[Dict]:
                 "company_name": clean_name,
                 "ticker": item.get("ticker"),
                 "filing_date": item.get("filedAt", "")[:10],
-                "filing_type": item.get("formType"),
                 "filing_url": item.get("linkToHtml"),
                 "is_convertible": 1
             }
