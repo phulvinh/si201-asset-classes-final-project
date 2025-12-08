@@ -35,7 +35,7 @@ def load_and_store_stock_returns():
         # Fetch stock prices
         prices = fetch_stock_prices_for_11days(ticker, filing_date)
         if not prices:
-            # Private / missing stock → insert 0.0
+            # Private / missing stock should be inserted with 0.0
             cur.execute("""
                 INSERT INTO stock_returns (company_id, filing_date, return_day0_to_day5, return_day5_to_day10)
                 VALUES (?, ?, ?, ?)
@@ -72,7 +72,7 @@ def load_and_store_stock_returns():
 
         # Compute returns
         if p0 is None or p5 is None:
-            # Private / missing stock → insert 0.0
+            # Private or missing stock should be inserted 0.0
             ret0_5 = 0.0
             ret5_10 = 0.0
         else:

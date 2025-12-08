@@ -7,7 +7,7 @@ from db import get_connection
 def fetch_stock_prices_for_11days(ticker: str, filing_date_str: str) -> List[Dict]:
     start_dt = datetime.fromisoformat(filing_date_str)
 
-    # Request a slightly larger range to handle weekends / missing days
+    # Request a slightly larger range to handle weekends or missing days
     date_from = start_dt.strftime("%Y-%m-%d")
     date_to = (start_dt + timedelta(days=12)).strftime("%Y-%m-%d")
 
