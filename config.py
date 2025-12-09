@@ -3,9 +3,10 @@ import os
 DB_NAME = "asset_classes.db"
 
 # DO NOT REMOVE ENVIRONMENT VARIABLES :D
-SEC_API_KEY = os.environ.get("SEC_API_KEY", "9ac33dd00ac48350c86f810689a689c6206eaa53abeef44838ea9dafdb62d675")
+SEC_API_KEY = os.environ.get("SEC_API_KEY", "1e0bee76211ed335942de329a3d7546254e01cc9ba44c43d8a26aea2f3554ec5")
 # Rob's Key: 9ac33dd00ac48350c86f810689a689c6206eaa53abeef44838ea9dafdb62d675
 # Phu's Key: cd987be4425e8c3064ce4d602f913b3edc27a1af91be9396fbc377055fc2e0de
+# Sophia's Key: 1e0bee76211ed335942de329a3d7546254e01cc9ba44c43d8a26aea2f3554ec5 
 
 STOCKDATA_API_KEY = os.environ.get("STOCKDATA_API_KEY", "lnXNwNFp0CTqC1XzL81IINaOqI2OaX7EI0gtsWZt")
 # Rob's Key: yK3BNhS1Mzce5lqaHCgNGHkSfkBch8i4yo4KBkPE
