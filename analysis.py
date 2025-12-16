@@ -249,9 +249,89 @@ def plot_avg_returns_bar(avg_stats):
     plt.show()
 
 
-# SUMMARY OUTPUT TO TEXT FILE
+# Extra Credit 1
 
-def write_summary_to_file(bucket_counts, avg_stats, ym_counts, filename="analysis_summary.txt"):
+def calculate_return_distribution():
+    rows = load_compact_stock_returns()
+    values = []
+
+    for _, _, r0_5, _ in rows:
+        if r0_5 not in (None, 0.0):
+            values.append(r0_5)
+    
+    return values 
+
+def plot_return_distribution(values):
+    if not values:
+        print("No return values available to plot distribution.")
+        return
+    
+    #Create histogram of returns
+    plt.figure(figsize=(10, 5), dpi=140)
+    plt.hist(values, bins=20, color="#17becf")
+
+    plt.title("Distribution of Returns After Convertible Filing (Day0 → Day5)")
+    plt.xlabel("Return (%) from Day0 to Day5")
+    plt.ylabel("Number of Filings")
+
+    plt.tight_layout()
+    plt.savefig("fig4_return_distribution_day0_5.png", bbox_inches="tight")
+    plt.show()
+
+#Extra Credit 2
+
+def calculate_yield_vs_return():
+    # Load historical 10Y Treasury yield data
+    rates = load_interest_rates()
+
+    if not rates:
+        print("No interest-rate data found in DB.")
+        return []
+
+    # Load compact stock return data
+    rows = load_compact_stock_returns()
+    points = []
+
+    for _, filing_date_str, r0_5, _ in rows:
+        try:
+            # Convert filing date string to date object
+            filing_date = datetime.fromisoformat(filing_date_str).date()
+        except Exception:
+            continue
+
+        rate = get_latest_rate_on_or_before(filing_date, rates)
+        if rate is None:
+            continue
+
+        if r0_5 not in (None, 0.0):
+            points.append((rate, r0_5))
+
+    return points
+
+def plot_yield_vs_return(points):
+    if not points:
+        print("No yield-return points to plot.")
+        return
+
+    x = [p[0] for p in points]
+    y = [p[1] for p in points]
+
+    # Create scatter plot
+    plt.figure(figsize=(10, 5), dpi=140)
+    plt.scatter(x, y, color="#bcbd22", alpha=0.8)
+
+    plt.title("10Y Treasury Yield vs Returns (Day0 → Day5)")
+    plt.xlabel("10Y Treasury Yield (%) at Filing Date")
+    plt.ylabel("Return (%) from Day0 to Day5")
+    plt.tight_layout()
+    plt.savefig("fig5_yield_vs_return_scatter_day0_5.png", bbox_inches="tight")
+    plt.show()
+
+
+
+# Summary output to text file
+
+def write_summary_to_file(bucket_counts, avg_stats, ym_counts, return_dist, yield_return_pts, filename="analysis_summary.txt"):
     # Helper to normalize labels, def inside def
     
     def normalize_label(s: str) -> str:
@@ -318,6 +398,39 @@ def write_summary_to_file(bucket_counts, avg_stats, ym_counts, filename="analysi
         else:
             f.write("   No filings aggregated by month.\n\n")
 
+        # Return distribution
+        f.write("4) Distribution of Short-Term Returns (Day0, Day5)\n")
+
+        if return_dist:
+            med = median(return_dist)
+            min_r = min(return_dist)
+            max_r = max(return_dist)
+            n = len(return_dist)
+
+            f.write(f"   - Number of observations: {n}\n")
+            f.write(f"   - Median return: {med:.2f}%\n")
+            f.write(f"   - Range: {min_r:.2f}% to {max_r:.2f}%\n\n")
+        else:
+            f.write("   No valid return observations available.\n\n")
+
+        # Yield vs return relationship
+        f.write("5) Relationship Between Interest Rates and Returns\n")
+
+        if yield_return_pts:
+            rates = [p[0] for p in yield_return_pts]
+            returns = [p[1] for p in yield_return_pts]
+
+            med_rate = median(rates)
+            med_ret = median(returns)
+            n = len(yield_return_pts)
+
+            f.write(f"   - Number of paired observations: {n}\n")
+            f.write(f"   - Median 10Y Treasury yield: {med_rate:.2f}%\n")
+            f.write(f"   - Median Day0, Day5 return: {med_ret:.2f}%\n")
+            f.write("   - Scatter plot shows wide dispersion, suggesting no strong linear relationship.\n\n")
+        else:
+            f.write("   No matched yield-return data available.\n\n")
+    
     print(f"Summary written to {filename}")
 
 # RUN
@@ -337,5 +450,15 @@ def run_analysis():
     print("Filings per month:", ym_counts)
     plot_filings_over_time(ym_counts)
 
+    # Extra Credit (return distribution)
+    return_dist = calculate_return_distribution()
+    print("Return distribution count:", len(return_dist))
+    plot_return_distribution(return_dist)
+
+    # Extra Credit (yield vs return)
+    yield_return_pts = calculate_yield_vs_return()
+    print("Yield vs return points:", len(yield_return_pts))
+    plot_yield_vs_return(yield_return_pts)
+
     # Write summary file
-    write_summary_to_file(bucket_counts, avg_stats, ym_counts)
+    write_summary_to_file(bucket_counts, avg_stats, ym_counts, return_dist, yield_return_pts)

@@ -7,8 +7,8 @@
    Total filings considered (for rate buckets): 96
 
 2) Average Returns Around Convertible Filings
-   - Day0 → Day5: 1.01% (n=41)
-   - Day5 → Day10: -1.04% (n=39)
+   - Day0 → Day5: -0.56% (n=44)
+   - Day5 → Day10: -1.36% (n=42)
 
 3) Filings Over Time (by Month)
    - 2020-10: 1 filings
@@ -61,4 +61,15 @@
    - 2025-10: 2 filings
    - 2025-11: 4 filings
    - 2025-12: 1 filings
+
+4) Distribution of Short-Term Returns (Day0, Day5)
+   - Number of observations: 44
+   - Median return: -0.56%
+   - Range: -37.34% to 147.66%
+
+5) Relationship Between Interest Rates and Returns
+   - Number of paired observations: 43
+   - Median 10Y Treasury yield: 4.11%
+   - Median Day0, Day5 return: -0.83%
+   - Scatter plot shows wide dispersion, suggesting no strong linear relationship.
 
